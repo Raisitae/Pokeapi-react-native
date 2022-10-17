@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#F6F6F6",
     marginTop: 50,
+    height: "100%",
   },
   input: {
     width: "90%",
