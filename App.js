@@ -7,7 +7,7 @@ import {
   ScrollView,
   Image,
   TextInput,
-  YellowBox,
+  Button,
 } from "react-native";
 import pokemonList from "./pokemonList";
 
@@ -16,23 +16,30 @@ const App = () => {
   const [searchPokemons, setSearchPokemons] = useState("");
 
   useEffect(() => {
-    if (searchPokemons) {
-      setPokemons(
-        pokemonList.filter((poke) =>
-          poke.name.includes(searchPokemons.toLowerCase())
-        )
-      );
-    } else {
+    setPokemons(pokemonList);
+  }, []);
+
+  const handleSearchChange = () => {
+    if (searchPokemons === "") {
       setPokemons(pokemonList);
+    } else {
+      const filter = pokemonList.filter((p) =>
+        p.name.toLowerCase().includes(searchPokemons.toLowerCase())
+      );
+      setPokemons(filter);
     }
-  }, [searchPokemons]);
+  };
+
+  const handleText = (text) => {
+    setSearchPokemons(text);
+  };
 
   const toCapLetter = function (nombre) {
     return nombre.charAt(0).toUpperCase() + nombre.slice(1);
   };
 
   return (
-    <View style={styles.main}>
+    <SafeAreaView style={styles.main}>
       <ScrollView contentContainerStyle={{ alignItems: "center" }}>
         <View>
           <Image
@@ -40,12 +47,20 @@ const App = () => {
             source={require("./sources/pokeapi_256.png")}
           />
         </View>
-        <TextInput
-          style={styles.input}
-          onChangeText={(newText) => setSearchPokemons(newText)}
-          value={searchPokemons}
-          placeholder="Ingrese el nombre del pokemon"
-        />
+        <View
+          style={{ flexDirection: "row", paddingLeft: 20, paddingRight: 20 }}
+        >
+          <View style={{ flex: 3 }}>
+            <TextInput
+              style={styles.input}
+              onChangeText={handleText}
+              placeholder="Ingrese el nombre del pokemon"
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button title="Buscar" onPress={handleSearchChange} />
+          </View>
+        </View>
         <View style={styles.container}>
           {pokemons.length ? (
             pokemons.map((poke, index) => (
@@ -67,7 +82,7 @@ const App = () => {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -75,11 +90,11 @@ const styles = StyleSheet.create({
   main: {
     flexDirection: "row",
     backgroundColor: "#F6F6F6",
-    marginTop: 50,
     height: "100%",
+    paddingTop: 40,
   },
   input: {
-    width: "90%",
+    width: "100%",
     height: 40,
     padding: 10,
     borderRadius: 10,
