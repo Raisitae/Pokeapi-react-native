@@ -15,6 +15,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Linking,
+  StatusBar,
 } from "react-native";
 import pokemonList from "./pokemonList";
 
@@ -141,6 +142,7 @@ const App = () => {
           </View>
         </View>
       </Modal>
+      <StatusBar></StatusBar>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
