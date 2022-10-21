@@ -10,6 +10,11 @@ import {
   Button,
   ActivityIndicator,
   Switch,
+  FlatList,
+  RefreshControl,
+  KeyboardAvoidingView,
+  Modal,
+  Linking,
 } from "react-native";
 import pokemonList from "./pokemonList";
 
@@ -19,6 +24,8 @@ const App = () => {
   const [searchPokemons, setSearchPokemons] = useState("");
   const [pokemonBuscado, setPokemonBuscado] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [Url, setUrl] = useState("");
 
   useEffect(() => {
     setPokemons(pokemonList);
@@ -26,6 +33,8 @@ const App = () => {
 
   const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
 
+  /*   const toggleModal = () => setModalVisible((previousState) => !previousState);
+   */
   const handleSearchChange = () => {
     setPokemonBuscado(searchPokemons);
     setLoading(true);
@@ -53,95 +62,174 @@ const App = () => {
     return nombre.charAt(0).toUpperCase() + nombre.slice(1);
   };
 
+  const handleLink = () => {
+    Linking.openURL(Url);
+  };
+
+  const renderItem = ({ item }) => {
+    return (
+      <View style={styles.containerPoke}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Image source={{ uri: item.url }} style={styles.pokeImg} />
+          <Text style={styles.pokeText}> {toCapLetter(item.name)}</Text>
+        </View>
+        <View style={{ justifyContent: "center" }}>
+          <Button
+            title="Ver imagen"
+            onPress={() => {
+              setModalVisible((previousState) => !previousState);
+              console.log("click");
+              setUrl(item.url);
+            }}
+          />
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.main}>
-      {loading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#000000" />
-        </View>
-      ) : (
-        <View></View>
-      )}
-      <View style={{ alignItems: "center" }}>
-        <Image
-          style={styles.img}
-          source={require("./sources/pokeapi_256.png")}
-        />
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          alignContent: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ fontSize: 18, fontStyle: "bold" }}>
-          Deshabilitar búsqueda
-        </Text>
-        <View style={{ paddingBottom: 20 }}>
-          <Switch
-            trackColor={{ false: "#767577", true: "#81b0ff" }}
-            thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={toggleSwitch}
-            style={{ paddingTop: 0, height: 30 }}
-            value={isEnabled}
-          />
-        </View>
-      </View>
-      <View style={{ flexDirection: "row", paddingLeft: 20, paddingRight: 20 }}>
-        <View style={{ flex: 3, paddingBottom: 20 }}>
-          <TextInput
-            style={styles.input}
-            onChangeText={handleText}
-            editable={!isEnabled}
-            placeholder="Ingrese el nombre del pokemon"
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          {loading ? (
-            <ActivityIndicator />
-          ) : (
-            <Button
-              title="Buscar"
-              onPress={handleSearchChange}
-              disabled={isEnabled}
-            />
-          )}
-        </View>
-      </View>
-      <ScrollView contentContainerStyle={{ alignItems: "center" }}>
-        <View style={styles.container}>
-          {pokemons.length ? (
-            pokemons.map((poke, index) => (
-              <View key={index} style={styles.containerPoke}>
-                <Image
-                  style={styles.pokeImg}
-                  source={{ uri: poke.url }}
-                ></Image>
-                <Text style={styles.pokeText}>{toCapLetter(poke.name)}</Text>
+      <Modal animationType="slide" transparent={true} visible={modalVisible}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+          fade
+        >
+          <View
+            style={{
+              justifyContent: "center",
+              alignContent: "center",
+              backgroundColor: "white",
+              borderRadius: 20,
+              width: 300,
+              height: 300,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+
+              elevation: 5,
+            }}
+          >
+            <Text
+              style={{ textAlign: "center", fontSize: 18, paddingBottom: 20 }}
+            >
+              Si aceptas, vamos a abrir una pestaña en tu navegador, estas
+              seguro?
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignContent: "center",
+              }}
+            >
+              <View style={{ marginRight: 10 }}>
+                <Button title="Abrir imágen" onPress={handleLink} />
               </View>
-            ))
-          ) : (
-            <View style={styles.containerNotFind}>
-              <Text style={styles}>
-                No se pudo encontrar ningun Pokemon con el nombre:
-              </Text>
-              <Text style={styles.pokeText}>{pokemonBuscado}</Text>
+              <View style={{ marginLeft: 10 }}>
+                <Button title="Cerrar modal" onPress={setModalVisible} />
+              </View>
             </View>
-          )}
+          </View>
         </View>
-      </ScrollView>
+      </Modal>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <View style={{ alignItems: "center" }}>
+          <Image
+            style={styles.img}
+            source={require("./sources/pokeapi_256.png")}
+          />
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            alignContent: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 18, fontStyle: "bold" }}>
+            Deshabilitar búsqueda
+          </Text>
+          <View style={{ paddingBottom: 20 }}>
+            <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={toggleSwitch}
+              style={{ paddingTop: 0, height: 30 }}
+              value={isEnabled}
+            />
+          </View>
+        </View>
+        <ScrollView contentContainerStyle={{ alignItems: "center" }}>
+          <View style={styles.container}>
+            {pokemons.length ? (
+              <FlatList
+                style={{ flex: 1 }}
+                data={pokemons}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.name}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={loading}
+                    onRefresh={searchPokemons}
+                  />
+                }
+              />
+            ) : (
+              <View style={styles.containerNotFind}>
+                <Text style={styles}>
+                  No se pudo encontrar ningun Pokemon con el nombre:
+                </Text>
+                <Text style={styles.pokeText}>{pokemonBuscado}</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+        <View style={{ flexDirection: "row", padding: 20 }}>
+          <View style={{ flex: 3 }}>
+            <TextInput
+              style={styles.input}
+              onChangeText={handleText}
+              editable={!isEnabled}
+              placeholder="Ingrese el nombre del pokemon"
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <Button
+                title="Buscar"
+                onPress={handleSearchChange}
+                disabled={isEnabled}
+              />
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   main: {
-    flexDirection: "column",
+    flexDirection: "row",
     backgroundColor: "#F6F6F6",
     height: "100%",
     paddingTop: 40,
+    justifyContent: "center",
   },
   input: {
     width: "100%",
@@ -152,19 +240,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 15,
   },
-  loading: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    right: 0,
-    left: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.15)",
-    zIndex: 100,
-  },
   container: {
-    width: "90%",
+    width: "100%",
   },
   containerNotFind: {
     flexDirection: "column",
@@ -174,14 +251,16 @@ const styles = StyleSheet.create({
   pokeText: {
     fontSize: 20,
     fontStyle: "bold",
+    textAlign: "center",
   },
   containerPoke: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
+    justifyContent: "space-between",
     borderBottomColor: "grey",
     paddingBottom: 10,
     paddingTop: 10,
+    marginRight: 15,
+    marginLeft: 15,
     borderBottomWidth: 1,
   },
   img: {
