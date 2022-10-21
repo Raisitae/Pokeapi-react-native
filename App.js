@@ -8,25 +8,40 @@ import {
   Image,
   TextInput,
   Button,
+  ActivityIndicator,
+  Switch,
 } from "react-native";
 import pokemonList from "./pokemonList";
 
 const App = () => {
+  const [isEnabled, setIsEnabled] = useState(false);
   const [pokemons, setPokemons] = useState([]);
   const [searchPokemons, setSearchPokemons] = useState("");
+  const [pokemonBuscado, setPokemonBuscado] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setPokemons(pokemonList);
   }, []);
 
+  const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
+
   const handleSearchChange = () => {
+    setPokemonBuscado(searchPokemons);
+    setLoading(true);
     if (searchPokemons === "") {
-      setPokemons(pokemonList);
+      setTimeout(() => {
+        setPokemons(pokemonList);
+        setLoading(false);
+      }, 800);
     } else {
-      const filter = pokemonList.filter((p) =>
-        p.name.toLowerCase().includes(searchPokemons.toLowerCase())
-      );
-      setPokemons(filter);
+      setTimeout(() => {
+        const filter = pokemonList.filter((p) =>
+          p.name.toLowerCase().includes(searchPokemons.toLowerCase())
+        );
+        setPokemons(filter);
+        setLoading(false);
+      }, 800);
     }
   };
 
@@ -40,27 +55,62 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.main}>
-      <ScrollView contentContainerStyle={{ alignItems: "center" }}>
-        <View>
-          <Image
-            style={styles.img}
-            source={require("./sources/pokeapi_256.png")}
+      {loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#000000" />
+        </View>
+      ) : (
+        <View></View>
+      )}
+      <View style={{ alignItems: "center" }}>
+        <Image
+          style={styles.img}
+          source={require("./sources/pokeapi_256.png")}
+        />
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignContent: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: 18, fontStyle: "bold" }}>
+          Deshabilitar búsqueda
+        </Text>
+        <View style={{ paddingBottom: 20 }}>
+          <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitch}
+            style={{ paddingTop: 0, height: 30 }}
+            value={isEnabled}
           />
         </View>
-        <View
-          style={{ flexDirection: "row", paddingLeft: 20, paddingRight: 20 }}
-        >
-          <View style={{ flex: 3 }}>
-            <TextInput
-              style={styles.input}
-              onChangeText={handleText}
-              placeholder="Ingrese el nombre del pokemon"
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Button title="Buscar" onPress={handleSearchChange} />
-          </View>
+      </View>
+      <View style={{ flexDirection: "row", paddingLeft: 20, paddingRight: 20 }}>
+        <View style={{ flex: 3, paddingBottom: 20 }}>
+          <TextInput
+            style={styles.input}
+            onChangeText={handleText}
+            editable={!isEnabled}
+            placeholder="Ingrese el nombre del pokemon"
+          />
         </View>
+        <View style={{ flex: 1 }}>
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <Button
+              title="Buscar"
+              onPress={handleSearchChange}
+              disabled={isEnabled}
+            />
+          )}
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ alignItems: "center" }}>
         <View style={styles.container}>
           {pokemons.length ? (
             pokemons.map((poke, index) => (
@@ -77,7 +127,7 @@ const App = () => {
               <Text style={styles}>
                 No se pudo encontrar ningun Pokemon con el nombre:
               </Text>
-              <Text style={styles.pokeText}>{searchPokemons}</Text>
+              <Text style={styles.pokeText}>{pokemonBuscado}</Text>
             </View>
           )}
         </View>
@@ -88,7 +138,7 @@ const App = () => {
 
 const styles = StyleSheet.create({
   main: {
-    flexDirection: "row",
+    flexDirection: "column",
     backgroundColor: "#F6F6F6",
     height: "100%",
     paddingTop: 40,
@@ -101,6 +151,17 @@ const styles = StyleSheet.create({
     borderColor: "grey",
     borderWidth: 1,
     fontSize: 15,
+  },
+  loading: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    right: 0,
+    left: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.15)",
+    zIndex: 100,
   },
   container: {
     width: "90%",
@@ -125,6 +186,7 @@ const styles = StyleSheet.create({
   },
   img: {
     marginBottom: 30,
+    alignItems: "center",
   },
   pokeImg: {
     height: 70,
