@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -16,7 +16,11 @@ import {
   Modal,
   Linking,
   StatusBar,
+  TouchableOpacity,
+  BackHandler,
+  Platform,
 } from "react-native";
+import { WebView } from "react-native-webview";
 import pokemonList from "./pokemonList";
 
 const App = () => {
@@ -26,6 +30,8 @@ const App = () => {
   const [pokemonBuscado, setPokemonBuscado] = useState("");
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalTouchVisible, setModalTouchVisible] = useState(false);
+
   const [Url, setUrl] = useState("");
 
   useEffect(() => {
@@ -71,15 +77,22 @@ const App = () => {
     return (
       <View style={styles.containerPoke}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Image source={{ uri: item.url }} style={styles.pokeImg} />
+          <TouchableOpacity
+            onPress={() => {
+              setUrl(item.url);
+              setModalTouchVisible((previousState) => !previousState);
+            }}
+          >
+            <Image source={{ uri: item.url }} style={styles.pokeImg} />
+          </TouchableOpacity>
           <Text style={styles.pokeText}> {toCapLetter(item.name)}</Text>
         </View>
         <View style={{ justifyContent: "center" }}>
+          <TouchableOpacity />
           <Button
             title="Ver imagen"
             onPress={() => {
               setModalVisible((previousState) => !previousState);
-              console.log("click");
               setUrl(item.url);
             }}
           />
@@ -98,7 +111,6 @@ const App = () => {
             alignItems: "center",
             height: "100%",
           }}
-          fade
         >
           <View
             style={{
@@ -142,12 +154,39 @@ const App = () => {
           </View>
         </View>
       </Modal>
-      <StatusBar></StatusBar>
+      <Modal
+        transparent={true}
+        visible={modalTouchVisible}
+        animationType="slide"
+      >
+        <View
+          style={{
+            justifyContent: "center",
+            alignContent: "center",
+            height: "100%",
+            width: "100%",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "column",
+              justifyContent: "center",
+              alignContent: "center",
+              width: 300,
+              height: 300,
+            }}
+          >
+            <WebView source={{ uri: Url }} />
+            <Button title="Cerrar" onPress={setModalTouchVisible} />
+          </View>
+        </View>
+      </Modal>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
         <View style={{ alignItems: "center" }}>
+          <StatusBar backgroundColor="red" />
           <Image
             style={styles.img}
             source={require("./sources/pokeapi_256.png")}
