@@ -17,8 +17,8 @@ import {
   Linking,
   StatusBar,
   TouchableOpacity,
-  BackHandler,
   Platform,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import pokemonList from "./pokemonList";
@@ -40,8 +40,6 @@ const App = () => {
 
   const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
 
-  /*   const toggleModal = () => setModalVisible((previousState) => !previousState);
-   */
   const handleSearchChange = () => {
     setPokemonBuscado(searchPokemons);
     setLoading(true);
@@ -171,9 +169,21 @@ const App = () => {
             style={{
               flexDirection: "column",
               justifyContent: "center",
-              alignContent: "center",
+              alignSelf: "center",
+              height: 337,
               width: 300,
-              height: 300,
+              padding: 15,
+              borderRadius: 20,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+
+              elevation: 5,
+              backgroundColor: "white",
             }}
           >
             <WebView source={{ uri: Url }} />
@@ -213,31 +223,29 @@ const App = () => {
             />
           </View>
         </View>
-        <ScrollView contentContainerStyle={{ alignItems: "center" }}>
-          <View style={styles.container}>
-            {pokemons.length ? (
-              <FlatList
-                style={{ flex: 1 }}
-                data={pokemons}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.name}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={loading}
-                    onRefresh={searchPokemons}
-                  />
-                }
-              />
-            ) : (
-              <View style={styles.containerNotFind}>
-                <Text style={styles}>
-                  No se pudo encontrar ningun Pokemon con el nombre:
-                </Text>
-                <Text style={styles.pokeText}>{pokemonBuscado}</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
+        <View style={styles.container}>
+          {pokemons.length ? (
+            <FlatList
+              data={pokemons}
+              style={{ height: "67%" }}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.name}
+              refreshControl={
+                <RefreshControl
+                  refreshing={loading}
+                  onRefresh={searchPokemons}
+                />
+              }
+            />
+          ) : (
+            <View style={styles.containerNotFind}>
+              <Text style={styles}>
+                No se pudo encontrar ningun Pokemon con el nombre:
+              </Text>
+              <Text style={styles.pokeText}>{pokemonBuscado}</Text>
+            </View>
+          )}
+        </View>
         <View style={{ flexDirection: "row", padding: 20 }}>
           <View style={{ flex: 3 }}>
             <TextInput
