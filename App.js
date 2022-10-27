@@ -19,6 +19,9 @@ import {
   TouchableOpacity,
   Platform,
   TouchableWithoutFeedback,
+  Animated,
+  Easing,
+  Vibration,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import pokemonList from "./pokemonList";
@@ -29,9 +32,8 @@ const App = () => {
   const [searchPokemons, setSearchPokemons] = useState("");
   const [pokemonBuscado, setPokemonBuscado] = useState("");
   const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
   const [modalTouchVisible, setModalTouchVisible] = useState(false);
-
+  const [modalVisible, setModalVisible] = useState(false);
   const [Url, setUrl] = useState("");
 
   useEffect(() => {
@@ -67,20 +69,18 @@ const App = () => {
     return nombre.charAt(0).toUpperCase() + nombre.slice(1);
   };
 
-  const handleLink = () => {
-    Linking.openURL(Url);
-  };
-
   const renderItem = ({ item }) => {
     return (
       <View style={styles.containerPoke}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TouchableOpacity
             onPress={() => {
+              animate(Easing.bounce);
               setUrl(item.url);
               setModalTouchVisible((previousState) => !previousState);
             }}
           >
+            <Animated.Image source={Url} />
             <Image source={{ uri: item.url }} style={styles.pokeImg} />
           </TouchableOpacity>
           <Text style={styles.pokeText}> {toCapLetter(item.name)}</Text>
@@ -99,98 +99,89 @@ const App = () => {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.main}>
-      <Modal animationType="slide" transparent={true} visible={modalVisible}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
+  const renderModal = () => (
+    <Modal animationType="slide" transparent={true} visible={modalVisible}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
+        <View style={[styles.boxShadow, styles.modalLinking]}>
+          <Text
+            style={{ textAlign: "center", fontSize: 18, paddingBottom: 20 }}
+          >
+            Si aceptas, vamos a abrir una pestaña en tu navegador, estas seguro?
+          </Text>
           <View
             style={{
+              flexDirection: "row",
               justifyContent: "center",
               alignContent: "center",
-              backgroundColor: "white",
-              borderRadius: 20,
-              width: 300,
-              height: 300,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.25,
-              shadowRadius: 3.84,
-
-              elevation: 5,
             }}
           >
-            <Text
-              style={{ textAlign: "center", fontSize: 18, paddingBottom: 20 }}
-            >
-              Si aceptas, vamos a abrir una pestaña en tu navegador, estas
-              seguro?
-            </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignContent: "center",
-              }}
-            >
-              <View style={{ marginRight: 10 }}>
-                <Button title="Abrir imágen" onPress={handleLink} />
-              </View>
-              <View style={{ marginLeft: 10 }}>
-                <Button title="Cerrar modal" onPress={setModalVisible} />
-              </View>
+            <View style={{ marginRight: 10 }}>
+              <Button title="Abrir imágen" onPress={handleLink} />
+            </View>
+            <View style={{ marginLeft: 10 }}>
+              <Button title="Cerrar modal" onPress={setModalVisible} />
             </View>
           </View>
         </View>
-      </Modal>
-      <Modal
-        transparent={true}
-        visible={modalTouchVisible}
-        animationType="slide"
-      >
-        <View
-          style={{
-            justifyContent: "center",
-            alignContent: "center",
-            height: "100%",
-            width: "100%",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "column",
-              justifyContent: "center",
-              alignSelf: "center",
-              height: 337,
-              width: 300,
-              padding: 15,
-              borderRadius: 20,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.25,
-              shadowRadius: 3.84,
+      </View>
+    </Modal>
+  );
 
-              elevation: 5,
-              backgroundColor: "white",
-            }}
-          >
-            <WebView source={{ uri: Url }} />
-            <Button title="Cerrar" onPress={setModalTouchVisible} />
-          </View>
+  const handleLink = () => {
+    Linking.openURL(Url);
+  };
+
+  const opacity = React.useRef(new Animated.Value(0)).current;
+
+  const animate = (easing) => {
+    opacity.setValue(0);
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 2500,
+      useNativeDriver: false,
+      easing,
+    }).start();
+  };
+
+  const size = opacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 420],
+  });
+
+  const animatedStyles = [
+    {
+      opacity,
+      width: size,
+      height: size,
+    },
+  ];
+
+  const handleVibration = () => {
+    Vibration.vibrate();
+  };
+
+  return (
+    <SafeAreaView style={styles.main}>
+      {renderModal()}
+
+      <Modal transparent={true} visible={modalTouchVisible}>
+        <View style={styles.centeredFullScreen}>
+          <Animated.View style={animatedStyles}>
+            <View style={[styles.boxShadow, styles.modalImagen]}>
+              <WebView source={{ uri: Url }} />
+              <Button title="Cerrar" onPress={setModalTouchVisible} />
+            </View>
+          </Animated.View>
         </View>
       </Modal>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
@@ -261,7 +252,9 @@ const App = () => {
             ) : (
               <Button
                 title="Buscar"
-                onPress={handleSearchChange}
+                onPress={() => {
+                  handleSearchChange(), handleVibration();
+                }}
                 disabled={isEnabled}
               />
             )}
@@ -324,6 +317,39 @@ const styles = StyleSheet.create({
     borderColor: "#1243AD",
     backgroundColor: "#F9D855",
     marginRight: "3%",
+  },
+  centeredFullScreen: {
+    justifyContent: "center",
+    alignContent: "center",
+    height: "100%",
+    width: "100%",
+  },
+  boxShadow: {
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    backgroundColor: "white",
+  },
+  modalImagen: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignSelf: "center",
+    height: 337,
+    width: 300,
+    padding: 15,
+  },
+  modalLinking: {
+    justifyContent: "center",
+    alignContent: "center",
+    backgroundColor: "white",
+    width: 300,
+    height: 300,
   },
 });
 
