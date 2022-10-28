@@ -21,6 +21,7 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Easing,
+  useWindowDimensions,
   Vibration,
 } from "react-native";
 import { WebView } from "react-native-webview";
@@ -35,6 +36,7 @@ const App = () => {
   const [modalTouchVisible, setModalTouchVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [Url, setUrl] = useState("");
+  const window = useWindowDimensions().height;
 
   useEffect(() => {
     setPokemons(pokemonList);
@@ -184,7 +186,7 @@ const App = () => {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
+        style={[styles.container, styles.mainCont]}
       >
         <View style={{ alignItems: "center" }}>
           <StatusBar backgroundColor="red" />
@@ -269,9 +271,11 @@ const styles = StyleSheet.create({
   main: {
     flexDirection: "row",
     backgroundColor: "#F6F6F6",
-    height: "100%",
-    paddingTop: 40,
     justifyContent: "center",
+  },
+  mainCont: {
+    paddingTop: 10,
+    paddingBottom: 20,
   },
   input: {
     width: "100%",
